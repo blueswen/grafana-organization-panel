@@ -4,8 +4,8 @@
   "name": "Organization Panel",
   "id": "blueswen-organization-panel",
   "info": {
-    "keywords": ["panel"],
-    "description": "Switch between Grafana organizations using a dropdown menu or buttons.",
+    "keywords": ["panel", "organization"],
+    "description": "Switch Grafana organizations via dropdown menu or buttons.",
     "author": {
       "name": "Blueswen"
     },
@@ -14,7 +14,12 @@
       "large": "img/logo.svg"
     },
     "links": [],
-    "screenshots": [],
+    "screenshots": [
+      {
+        "path": "img/dashboard.png",
+        "name": "Organization Panel in dashboard"
+      }
+    ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },

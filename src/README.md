@@ -1,3 +1,3 @@
 # Organization Panel
 
-Switch between Grafana organizations using a dropdown menu or buttons.
+Switch Grafana organizations via dropdown menu or buttons.
