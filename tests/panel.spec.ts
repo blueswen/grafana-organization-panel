@@ -145,7 +145,7 @@ test.describe('Organization Panel - Select Mode', () => {
         newOrgId = org.id.toString();
         newOrgName = org.name;
         console.log(`Redirect to org: ${newOrgId}`);
-        const option = page.getByRole('option', { name: org.name });
+        const option = page.locator('[role="option"]').filter({ hasText: org.name });
         await expect(option).toBeVisible();
         await option.click();
         await page.waitForURL((url) => url.searchParams.get('orgId') === newOrgId);

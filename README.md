@@ -2,9 +2,9 @@
 
 ![Grafana](https://img.shields.io/badge/Grafana-11.4-orange)
 ![CI](https://github.com/blueswen/grafana-organization-panel/workflows/CI/badge.svg)
-![E2E](https://github.com/blueswen/grafana-organization-panel/workflows/E2E/badge.svg)
-[![codecov](https://codecov.io/gh/blueswen/grafana-organization-panel/branch/main/graph/badge.svg)](https://codecov.io/gh/blueswen/grafana-organization-panel)
 [![CodeQL](https://github.com/blueswen/grafana-organization-panel/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/blueswen/grafana-organization-panel/actions/workflows/codeql-analysis.yml)
+[![Known Vulnerabilities](https://snyk.io/test/github/blueswen/grafana-organization-panel/badge.svg)](https://snyk.io/test/github/blueswen/grafana-organization-panel)
+[![License](https://img.shields.io/github/license/blueswen/grafana-organization-panel)](LICENSE)
 
 ## Introduction
 
