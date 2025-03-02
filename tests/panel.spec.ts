@@ -1,5 +1,5 @@
 import { test, expect } from '@grafana/plugin-e2e';
-import { getGrafanaBootData, switchOrg, getOrgList } from './utils';
+import { getGrafanaBootData, switchOrg, getOrgList, getGrafanaVersion } from './utils';
 
 test.describe('Organization Panel - Button Mode', () => {
   test.beforeEach(async ({ page, gotoPanelEditPage, readProvisionedDashboard }) => {
@@ -84,12 +84,22 @@ test.describe('Organization Panel - Select Mode', () => {
   });
 
   test('should generate options for all organizations', async ({ page, selectors }) => {
+    const grafanaBootData = await getGrafanaBootData(page);
+    const version = await getGrafanaVersion(page);
+
     // Get the list of organizations
     const orgList = await getOrgList(page);
 
     // Check if the select is generated
-    const select = page.getByTestId('org-select');
-    await expect(select).toBeVisible();
+    let select = null;
+    if (version < 11) {
+      const panelHeader = page.getByTestId('data-testid Panel header Organization panel with select');
+      select = panelHeader.locator('[class*="input-wrapper"]');
+      await expect(select).toBeVisible();
+    } else {
+      select = page.getByTestId('org-select');
+      await expect(select).toBeVisible();
+    }
 
     // Click the select to open the dropdown
     await select.click();
@@ -107,6 +117,8 @@ test.describe('Organization Panel - Select Mode', () => {
   });
 
   test('should select the current user organization', async ({ page }) => {
+    const version = await getGrafanaVersion(page);
+
     // Get the current organization ID
     const grafanaBootData = await getGrafanaBootData(page);
     expect(grafanaBootData.user).toHaveProperty('orgId');
@@ -114,8 +126,15 @@ test.describe('Organization Panel - Select Mode', () => {
     const currentOrgName = grafanaBootData.user.orgName;
 
     // Check if the select is generated
-    const select = page.getByTestId('org-select');
-    await expect(select).toBeVisible();
+    let select = null;
+    if (version < 11) {
+      const panelHeader = page.getByTestId('data-testid Panel header Organization panel with select');
+      select = panelHeader.locator('[class*="input-wrapper"]');
+      await expect(select).toBeVisible();
+    } else {
+      select = page.getByTestId('org-select');
+      await expect(select).toBeVisible();
+    }
 
     // Check if the select has the correct pre-selected value
     const selectedValue = await select.first().textContent();
@@ -125,13 +144,21 @@ test.describe('Organization Panel - Select Mode', () => {
   test('should switch organization when selecting an option', async ({ page, gotoPanelEditPage }) => {
     const grafanaBootData = await getGrafanaBootData(page);
     const currentOrgId = grafanaBootData.user.orgId;
+    const version = await getGrafanaVersion(page);
 
     // Get the list of organizations
     const orgList = await getOrgList(page);
 
     // Check if the select is generated
-    const select = page.getByTestId('org-select');
-    await expect(select).toBeVisible();
+    let select = null;
+    if (version < 11) {
+      const panelHeader = page.getByTestId('data-testid Panel header Organization panel with select');
+      select = panelHeader.locator('[class*="input-wrapper"]');
+      await expect(select).toBeVisible();
+    } else {
+      select = page.getByTestId('org-select');
+      await expect(select).toBeVisible();
+    }
 
     // Click the select to open the dropdown
     await select.click();
@@ -145,7 +172,12 @@ test.describe('Organization Panel - Select Mode', () => {
         newOrgId = org.id.toString();
         newOrgName = org.name;
         console.log(`Redirect to org: ${newOrgId}`);
-        const option = page.locator('[role="option"]').filter({ hasText: org.name });
+        let option = null;
+        if (version < 11) {
+          option = page.locator('[aria-label="Select option"]').filter({ hasText: org.name });
+        } else {
+          option = page.locator('[role="option"]').filter({ hasText: org.name });
+        }
         await expect(option).toBeVisible();
         await option.click();
         await page.waitForURL((url) => url.searchParams.get('orgId') === newOrgId);

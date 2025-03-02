@@ -27,3 +27,20 @@ export async function getOrgList(page): Promise<any[]> {
     return res.json();
   });
 }
+
+export async function getGrafanaVersion(page): Promise<number> {
+  const bootData = await getGrafanaBootData(page);
+
+  const versionString = bootData?.settings?.buildInfo?.version;
+  if (!versionString || typeof versionString !== 'string') {
+    throw new Error('Failed to retrieve Grafana version');
+  }
+
+  const majorVersion = Number(versionString.split('.')[0]);
+
+  if (isNaN(majorVersion)) {
+    throw new Error(`Invalid Grafana version format: ${versionString}`);
+  }
+
+  return majorVersion;
+}
