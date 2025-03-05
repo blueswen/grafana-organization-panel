@@ -26,4 +26,4 @@ grafana-cli plugins install blueswen-organization-panel
 
 ## License
 
-Apache License Version 2.0, see [LICENSE](./LICENSE).
+Apache License Version 2.0, see [LICENSE](https://github.com/blueswen/grafana-organization-panel/blob/main/LICENSE).
