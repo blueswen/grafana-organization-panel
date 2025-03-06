@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3 (2025-03-06)
+
+* Update plugin.json
+
 ## 1.0.2 (2025-03-05)
 
 * Update README.md
