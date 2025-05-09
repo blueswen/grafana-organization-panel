@@ -28,19 +28,18 @@ export async function getOrgList(page): Promise<any[]> {
   });
 }
 
-export async function getGrafanaVersion(page): Promise<number> {
-  const bootData = await getGrafanaBootData(page);
+export function getPanelContentSelector(page: Page) {
+  const panel = page.getByTestId('data-testid panel content');
+  return {
+    panel,
+    input: panel.locator('input'),
+  };
+}
 
-  const versionString = bootData?.settings?.buildInfo?.version;
-  if (!versionString || typeof versionString !== 'string') {
-    throw new Error('Failed to retrieve Grafana version');
-  }
-
-  const majorVersion = Number(versionString.split('.')[0]);
-
-  if (isNaN(majorVersion)) {
-    throw new Error(`Invalid Grafana version format: ${versionString}`);
-  }
-
-  return majorVersion;
+export async function openOrgSelect(page: Page) {
+  const { input } = getPanelContentSelector(page);
+  await input.click();
+  const menuId = await input.getAttribute('aria-controls');
+  const options = page.locator(`#${menuId} [role="option"] span`);
+  return { menuId, options };
 }

@@ -1,5 +1,5 @@
 import { test, expect } from '@grafana/plugin-e2e';
-import { getGrafanaBootData, switchOrg, getOrgList, getGrafanaVersion } from './utils';
+import { getGrafanaBootData, switchOrg, getOrgList, getPanelContentSelector } from './utils';
 
 test.describe('Organization Panel - Button Mode', () => {
   test.beforeEach(async ({ page, gotoPanelEditPage, readProvisionedDashboard }) => {
@@ -8,6 +8,9 @@ test.describe('Organization Panel - Button Mode', () => {
 
     const dashboard = await readProvisionedDashboard({ fileName: 'dashboard.json' });
     await gotoPanelEditPage({ dashboard, id: '2' });
+
+    // Wait for the organization panel to be visible
+    await page.waitForSelector('div[data-testid="data-testid panel content"]');
   });
 
   test.afterEach(async ({ page }) => {
@@ -76,6 +79,9 @@ test.describe('Organization Panel - Select Mode', () => {
 
     const dashboard = await readProvisionedDashboard({ fileName: 'dashboard.json' });
     await gotoPanelEditPage({ dashboard, id: '1' });
+
+    // Wait for the organization panel to be visible
+    await page.waitForSelector('div[data-testid="data-testid panel content"]');
   });
 
   test.afterEach(async ({ page }) => {
@@ -84,28 +90,15 @@ test.describe('Organization Panel - Select Mode', () => {
   });
 
   test('should generate options for all organizations', async ({ page, selectors }) => {
-    const grafanaBootData = await getGrafanaBootData(page);
-    const version = await getGrafanaVersion(page);
-
     // Get the list of organizations
     const orgList = await getOrgList(page);
 
-    // Check if the select is generated
-    let select = null;
-    if (version < 11) {
-      const panelHeader = page.getByTestId('data-testid Panel header Organization panel with select');
-      select = panelHeader.locator('[class*="input-wrapper"]');
-      await expect(select).toBeVisible();
-    } else {
-      select = page.getByTestId('org-select');
-      await expect(select).toBeVisible();
-    }
-
-    // Click the select to open the dropdown
-    await select.click();
-
-    // Check if the options are generated
-    const options = await page.locator('[id^="react-select"][id*="-option-"]');
+    const { panel, input } = getPanelContentSelector(page);
+    await expect(panel).toBeVisible();
+    await input.click();
+    
+    const menuId = await input.getAttribute('aria-controls');
+    const options = page.locator(`#${menuId} [role="option"] span`);
     await expect(options).toHaveCount(orgList.length);
 
     // Check if the options have the correct text
@@ -117,52 +110,34 @@ test.describe('Organization Panel - Select Mode', () => {
   });
 
   test('should select the current user organization', async ({ page }) => {
-    const version = await getGrafanaVersion(page);
-
     // Get the current organization ID
     const grafanaBootData = await getGrafanaBootData(page);
     expect(grafanaBootData.user).toHaveProperty('orgId');
     const currentOrgId = grafanaBootData.user.orgId;
     const currentOrgName = grafanaBootData.user.orgName;
 
-    // Check if the select is generated
-    let select = null;
-    if (version < 11) {
-      const panelHeader = page.getByTestId('data-testid Panel header Organization panel with select');
-      select = panelHeader.locator('[class*="input-wrapper"]');
-      await expect(select).toBeVisible();
-    } else {
-      select = page.getByTestId('org-select');
-      await expect(select).toBeVisible();
-    }
+    const { panel, input } = getPanelContentSelector(page);
+    await expect(panel).toBeVisible();
+    const selectedValue = await input.getAttribute('value');
 
-    // Check if the select has the correct pre-selected value
-    const selectedValue = await select.first().textContent();
     expect(selectedValue).toBe(currentOrgName);
   });
 
   test('should switch organization when selecting an option', async ({ page, gotoPanelEditPage }) => {
     const grafanaBootData = await getGrafanaBootData(page);
     const currentOrgId = grafanaBootData.user.orgId;
-    const version = await getGrafanaVersion(page);
 
     // Get the list of organizations
     const orgList = await getOrgList(page);
 
-    // Check if the select is generated
-    let select = null;
-    if (version < 11) {
-      const panelHeader = page.getByTestId('data-testid Panel header Organization panel with select');
-      select = panelHeader.locator('[class*="input-wrapper"]');
-      await expect(select).toBeVisible();
-    } else {
-      select = page.getByTestId('org-select');
-      await expect(select).toBeVisible();
-    }
+    const { panel, input } = getPanelContentSelector(page);
+    await expect(panel).toBeVisible();
+    await input.click();
+    
+    const menuId = await input.getAttribute('aria-controls');
+    const options = page.locator(`#${menuId} [role="option"] span`);
 
-    // Click the select to open the dropdown
-    await select.click();
-    await page.waitForSelector('[id^="react-select"][id*="-option-"]');
+    await expect(options).toHaveCount(orgList.length);
 
     // Switch to a different organization
     let newOrgId = '';
@@ -173,11 +148,8 @@ test.describe('Organization Panel - Select Mode', () => {
         newOrgName = org.name;
         console.log(`Redirect to org: ${newOrgId}`);
         let option = null;
-        if (version < 11) {
-          option = page.locator('[aria-label="Select option"]').filter({ hasText: org.name });
-        } else {
-          option = page.locator('[role="option"]').filter({ hasText: org.name });
-        }
+        option = options.filter({ hasText: org.name });
+
         await expect(option).toBeVisible();
         await option.click();
         await page.waitForURL((url) => url.searchParams.get('orgId') === newOrgId);

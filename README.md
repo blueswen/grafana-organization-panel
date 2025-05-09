@@ -1,6 +1,6 @@
 # Organization Panel
 
-![Grafana](https://img.shields.io/badge/Grafana-10+-orange)
+![Grafana](https://img.shields.io/badge/Grafana-11+-orange)
 ![CI](https://github.com/blueswen/grafana-organization-panel/workflows/CI/badge.svg)
 [![CodeQL](https://github.com/blueswen/grafana-organization-panel/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/blueswen/grafana-organization-panel/actions/workflows/codeql-analysis.yml)
 [![Known Vulnerabilities](https://snyk.io/test/github/blueswen/grafana-organization-panel/badge.svg)](https://snyk.io/test/github/blueswen/grafana-organization-panel)

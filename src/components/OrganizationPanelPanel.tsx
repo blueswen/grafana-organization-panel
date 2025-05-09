@@ -2,7 +2,7 @@ import { css, cx } from '@emotion/css';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { PanelProps, GrafanaTheme2 } from '@grafana/data';
 import { OrganizationPanelOptions, Organization } from 'types';
-import { ToolbarButtonRow, ToolbarButton, Button, Select, useTheme2 } from '@grafana/ui';
+import { ToolbarButtonRow, ToolbarButton, Button, Combobox, useTheme2 } from '@grafana/ui';
 import { getBackendSrv } from '@grafana/runtime';
 
 interface Props extends PanelProps<OrganizationPanelOptions> {}
@@ -52,7 +52,7 @@ export const SimplePanel: React.FC<Props> = ({ options }) => {
   switch (options.displayMode) {
     case 'select':
       return (
-        <Select
+        <Combobox
           data-testid="org-select"
           options={organizationsList}
           value={currentOrg}
