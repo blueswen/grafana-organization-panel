@@ -1,5 +1,5 @@
 import { test, expect } from '@grafana/plugin-e2e';
-import { getGrafanaBootData, switchOrg, getOrgList, getPanelContentSelector } from './utils';
+import { getGrafanaBootData, switchOrg, getOrgList, getPanelContentSelector, getSelectOptions, isComboBoxSupported, getGrafanaVersion } from './utils';
 
 test.describe('Organization Panel - Button Mode', () => {
   test.beforeEach(async ({ page, gotoPanelEditPage, readProvisionedDashboard }) => {
@@ -10,7 +10,12 @@ test.describe('Organization Panel - Button Mode', () => {
     await gotoPanelEditPage({ dashboard, id: '2' });
 
     // Wait for the organization panel to be visible
-    await page.waitForSelector('div[data-testid="data-testid panel content"]');
+    const version = await getGrafanaVersion(page);
+    if (version.major === 11 && version.minor === 0) {
+      await page.waitForSelector('div[data-testid="data-testid Panel header Organization panel with button"]');
+    } else {
+      await page.waitForSelector('div[data-testid="data-testid panel content"]');
+    }
   });
 
   test.afterEach(async ({ page }) => {
@@ -81,7 +86,12 @@ test.describe('Organization Panel - Select Mode', () => {
     await gotoPanelEditPage({ dashboard, id: '1' });
 
     // Wait for the organization panel to be visible
-    await page.waitForSelector('div[data-testid="data-testid panel content"]');
+    const version = await getGrafanaVersion(page);
+    if (version.major === 11 && version.minor === 0) {
+      await page.waitForSelector('div[data-testid="data-testid Panel header Organization panel with select"]');
+    } else {
+      await page.waitForSelector('div[data-testid="data-testid panel content"]');
+    }
   });
 
   test.afterEach(async ({ page }) => {
@@ -93,13 +103,21 @@ test.describe('Organization Panel - Select Mode', () => {
     // Get the list of organizations
     const orgList = await getOrgList(page);
 
-    const { panel, input } = getPanelContentSelector(page);
-    await expect(panel).toBeVisible();
-    await input.click();
-    
-    const menuId = await input.getAttribute('aria-controls');
-    const options = page.locator(`#${menuId} [role="option"] span`);
-    await expect(options).toHaveCount(orgList.length);
+    let options = [];
+    if (await isComboBoxSupported(page)) {
+      const { panel, input } = getPanelContentSelector(page);
+      await expect(panel).toBeVisible();
+      await input.click();
+      const menuId = await input.getAttribute('aria-controls');
+      options = await getSelectOptions(page, menuId);
+      await expect(options).toHaveCount(orgList.length);
+    } else {
+      const select = page.getByTestId('org-select');
+      await expect(select).toBeVisible();
+      await select.click();
+      options = await page.locator('[id^="react-select"][id*="-option-"]');
+      await expect(options).toHaveCount(orgList.length);
+    }
 
     // Check if the options have the correct text
     for (let i = 0; i < orgList.length; i++) {
@@ -113,13 +131,18 @@ test.describe('Organization Panel - Select Mode', () => {
     // Get the current organization ID
     const grafanaBootData = await getGrafanaBootData(page);
     expect(grafanaBootData.user).toHaveProperty('orgId');
-    const currentOrgId = grafanaBootData.user.orgId;
     const currentOrgName = grafanaBootData.user.orgName;
 
-    const { panel, input } = getPanelContentSelector(page);
-    await expect(panel).toBeVisible();
-    const selectedValue = await input.getAttribute('value');
-
+    let selectedValue = '';
+    if (await isComboBoxSupported(page)) {
+      const { panel, input } = getPanelContentSelector(page);
+      await expect(panel).toBeVisible();
+      selectedValue = await input.getAttribute('value');
+    } else {
+      const select = page.getByTestId('org-select');
+      await expect(select).toBeVisible();
+      selectedValue = await select.first().textContent();
+    }
     expect(selectedValue).toBe(currentOrgName);
   });
 
@@ -130,14 +153,21 @@ test.describe('Organization Panel - Select Mode', () => {
     // Get the list of organizations
     const orgList = await getOrgList(page);
 
-    const { panel, input } = getPanelContentSelector(page);
-    await expect(panel).toBeVisible();
-    await input.click();
-    
-    const menuId = await input.getAttribute('aria-controls');
-    const options = page.locator(`#${menuId} [role="option"] span`);
-
-    await expect(options).toHaveCount(orgList.length);
+    let options = [];
+    if (await isComboBoxSupported(page)) {
+      const { panel, input } = getPanelContentSelector(page);
+      await expect(panel).toBeVisible();
+      await input.click();
+      const menuId = await input.getAttribute('aria-controls');
+      options = await getSelectOptions(page, menuId);
+      await expect(options).toHaveCount(orgList.length);
+    } else {
+      const select = page.getByTestId('org-select');
+      await expect(select).toBeVisible();
+      await select.click();
+      options = await page.locator('[id^="react-select"][id*="-option-"]');
+      await expect(options).toHaveCount(orgList.length);
+    }
 
     // Switch to a different organization
     let newOrgId = '';

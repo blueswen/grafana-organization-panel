@@ -2,8 +2,8 @@ import { css, cx } from '@emotion/css';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { PanelProps, GrafanaTheme2 } from '@grafana/data';
 import { OrganizationPanelOptions, Organization } from 'types';
-import { ToolbarButtonRow, ToolbarButton, Button, Combobox, useTheme2 } from '@grafana/ui';
-import { getBackendSrv } from '@grafana/runtime';
+import { ToolbarButtonRow, ToolbarButton, Button, Combobox, useTheme2, Select } from '@grafana/ui';
+import { getBackendSrv, config } from '@grafana/runtime';
 
 interface Props extends PanelProps<OrganizationPanelOptions> {}
 
@@ -12,6 +12,15 @@ export const SimplePanel: React.FC<Props> = ({ options }) => {
   const [currentOrg, setCurrentOrg] = useState<number | null>(null);
   const theme = useTheme2();
   const styles = getStyles(theme);
+
+  function getGrafanaRuntimeVersion(): { major: number; minor: number; patch: number } {
+    const versionStr = config.buildInfo.version; // e.g., '10.3.2'
+    const [major, minor, patch] = versionStr.split('.').map(Number);
+    return { major, minor, patch };
+  }
+
+  const version = getGrafanaRuntimeVersion();
+  const isComboSupported = version.major >= 11 && version.minor >= 5;
 
   const baseURL = useMemo(() => {
     const url = window.location.href;
@@ -51,6 +60,20 @@ export const SimplePanel: React.FC<Props> = ({ options }) => {
 
   switch (options.displayMode) {
     case 'select':
+      if(!isComboSupported) {
+        return (
+          <Select
+            data-testid="org-select"
+            options={organizationsList}
+            value={currentOrg}
+            onChange={(selected) => {
+              if (selected?.value) {
+                window.open(`${baseURL}/?orgId=${selected.value}`, '_self');
+              }
+            }}
+          />
+        );
+      }
       return (
         <Combobox
           data-testid="org-select"

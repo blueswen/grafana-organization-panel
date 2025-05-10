@@ -28,12 +28,38 @@ export async function getOrgList(page): Promise<any[]> {
   });
 }
 
+export async function getGrafanaVersion(page): Promise<{major: number; minor: number; patch: number}> {
+  const bootData = await getGrafanaBootData(page);
+
+  const versionString = bootData?.settings?.buildInfo?.version;
+  if (!versionString || typeof versionString !== 'string') {
+    throw new Error('Failed to retrieve Grafana version');
+  }
+
+  const [major, minor, patch] = versionString.split('.').map(Number);
+    return { major, minor, patch };
+}
+
+export async function isComboBoxSupported(page: Page): Promise<boolean> {
+  const version = await getGrafanaVersion(page);
+  return version.major >= 11 && version.minor >= 5;
+}
+
 export function getPanelContentSelector(page: Page) {
   const panel = page.getByTestId('data-testid panel content');
   return {
     panel,
     input: panel.locator('input'),
   };
+}
+
+export async function getSelectOptions(page: Page, menuId: string) {
+  if (await isComboBoxSupported(page)) {
+    return page.locator(`#${menuId} [role="option"] span`);
+  }
+  else {
+    return page.locator(`#${menuId} [role="option"] div div`);
+  }
 }
 
 export async function openOrgSelect(page: Page) {
