@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0 (2025-05-11)
+
+* Use ComboBox instead of Select for Grafana version >= 11.5
+
 ## 1.0.3 (2025-03-06)
 
 * Update plugin.json
